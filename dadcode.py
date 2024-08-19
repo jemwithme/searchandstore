@@ -27,20 +27,15 @@ def extract_and_verify_urls(text):
                 verified_urls.append(clean_url)
     return verified_urls
 
-def search_perplexity(query):
+def search_perplexity(query, search_type, region=None):
     url = "https://api.perplexity.ai/chat/completions"
     headers = {
         "accept": "application/json",
         "content-type": "application/json",
-        "authorization": f"Bearer {st.secrets["PERPLEXITY_API_KEY"]}"
+        "authorization": f"Bearer {st.secrets['PERPLEXITY_API_KEY']}"
     }
     
-    payload = {
-        "model": "llama-3.1-sonar-small-128k-online",
-        "messages": [
-            {
-                "role": "system",
-                "content": """You are an AI assistant for a global chemical sourcing business. Your task is to find direct chemical producers 
+    system_content = """You are an AI assistant for a chemical sourcing business. Your task is to find direct chemical producers 
                  based on the given product query. Focus solely on manufacturers and exclude any aggregators, middlemen, or trading companies.
 
                 Provide a list of potential chemical producers in the following format:
@@ -56,11 +51,17 @@ def search_perplexity(query):
                 - If you're unsure about any information, especially URLs or contact details, state "Not verified" instead of guessing.
 
                 Quality is more important than quantity and quality is best defined with price - only include companies you're confident about."""
-            },
-            {
-                "role": "user",
-                "content": f"Find direct global chemical producers for the product: {query}. Focus on accuracy over quantity."
-            }
+
+    user_content = f"Find direct {'global' if search_type == 'Global' else region} chemical producers for the product: {query}. Focus on accuracy over quantity."
+    
+    if search_type == 'Regional':
+        system_content += f"\n\nFocus your search on producers located in the {region} region."
+    
+    payload = {
+        "model": "llama-3.1-sonar-small-128k-online",
+        "messages": [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content}
         ]
     }
     
@@ -82,17 +83,26 @@ def process_results(results):
     return processed_results
 
 st.title("Global Chemical Producer Search")
-st.write("This tool finds direct manufacturers worldwide with an emphasis on accuracy.")
+st.write("This tool finds direct manufacturers worldwide or in specific regions with an emphasis on accuracy.")
+
+search_type = st.radio("Select search type:", ('Global', 'Regional'))
+
+if search_type == 'Regional':
+    regions = ['North America', 'South America', 'Europe', 'Asia', 'Africa', 'Oceania']
+    region = st.selectbox("Select a region:", regions)
 
 query = st.text_input("Enter the name of the chemical product you're looking for:")
 
 if st.button("Search"):
     if query:
-        with st.spinner("Searching for global producers and verifying information..."):
-            results = search_perplexity(query)
+        with st.spinner("Searching for producers and verifying information..."):
+            if search_type == 'Global':
+                results = search_perplexity(query, search_type)
+            else:
+                results = search_perplexity(query, search_type, region)
             processed_results = process_results(results)
             st.markdown(processed_results)
     else:
-        st.write("Please enter a chemical product name.")
+        st.warning("Please enter a chemical product name.")
 
-st.info("Note: This search provides results for direct manufacturers globally. URLs are verified where possible.")
+st.info("Note: This search provides results for direct manufacturers. URLs are verified where possible.")
