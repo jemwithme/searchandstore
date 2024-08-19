@@ -85,15 +85,15 @@ def process_results(results):
 st.title("Global Chemical Producer Search")
 st.write("This tool finds direct manufacturers worldwide or in specific regions with an emphasis on accuracy.")
 
-search_type = st.radio("Select search type:", ('Global', 'Regional'))
+search_type = st.radio("Select search type:", ('Global', 'Regional'), key="search_type")
 
 region = None
 if search_type == 'Regional':
-    region = st.text_input("Enter the region or area for your search:")
+    region = st.text_input("Enter the region or area for your search:", key="region_input")
 
-query = st.text_input("Enter the name of the chemical product you're looking for:")
+query = st.text_input("Enter the name of the chemical product you're looking for:", key="product_query")
 
-if st.button("Search"):
+if st.button("Search", key="search_button"):
     if query:
         with st.spinner("Searching for producers and verifying information..."):
             if search_type == 'Global':
@@ -104,20 +104,6 @@ if st.button("Search"):
                 else:
                     st.warning("Please enter a region for your search.")
                     st.stop()
-            processed_results = process_results(results)
-            st.markdown(processed_results)
-    else:
-        st.warning("Please enter a chemical product name.")
-
-query = st.text_input("Enter the name of the chemical product you're looking for:")
-
-if st.button("Search"):
-    if query:
-        with st.spinner("Searching for producers and verifying information..."):
-            if search_type == 'Global':
-                results = search_perplexity(query, search_type)
-            else:
-                results = search_perplexity(query, search_type, region)
             processed_results = process_results(results)
             st.markdown(processed_results)
     else:
