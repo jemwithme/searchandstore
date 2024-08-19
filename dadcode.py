@@ -59,7 +59,7 @@ def search_perplexity(query, search_type, region=None):
     user_content = f"Find potential {'global' if search_type == 'Global' else region} chemical producers for the product: {query}. Include both confirmed producers and those likely to produce it based on their capabilities."
     
     payload = {
-        "model": "llama-3.1-sonar-large-128k-online",
+        "model": "llama-3.1-sonar-small-128k-online",
         "messages": [
             {"role": "system", "content": system_content},
             {"role": "user", "content": user_content}
