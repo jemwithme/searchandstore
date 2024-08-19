@@ -52,10 +52,10 @@ def search_perplexity(query, search_type, region=None):
 
                 Quality is more important than quantity and quality is best defined with price - only include companies you're confident about."""
 
-    user_content = f"Find direct {'global' if search_type == 'Global' else region} chemical producers for the product: {query}. Focus on accuracy over quantity."
-    
     if search_type == 'Regional':
-        system_content += f"\n\nFocus your search on producers located in the {region} region."
+        system_content += f"\n\nFocus your search on producers located in or near the {region} area. If the specified region is unclear or too broad, interpret it to the best of your ability and mention your interpretation in the response."
+
+    user_content = f"Find direct {'global' if search_type == 'Global' else region} chemical producers for the product: {query}. Focus on accuracy over quantity."
     
     payload = {
         "model": "llama-3.1-sonar-small-128k-online",
@@ -87,9 +87,27 @@ st.write("This tool finds direct manufacturers worldwide or in specific regions 
 
 search_type = st.radio("Select search type:", ('Global', 'Regional'))
 
+region = None
 if search_type == 'Regional':
-    regions = ['North America', 'South America', 'Europe', 'Asia', 'Africa', 'Oceania']
-    region = st.selectbox("Select a region:", regions)
+    region = st.text_input("Enter the region or area for your search:")
+
+query = st.text_input("Enter the name of the chemical product you're looking for:")
+
+if st.button("Search"):
+    if query:
+        with st.spinner("Searching for producers and verifying information..."):
+            if search_type == 'Global':
+                results = search_perplexity(query, search_type)
+            else:
+                if region:
+                    results = search_perplexity(query, search_type, region)
+                else:
+                    st.warning("Please enter a region for your search.")
+                    st.stop()
+            processed_results = process_results(results)
+            st.markdown(processed_results)
+    else:
+        st.warning("Please enter a chemical product name.")
 
 query = st.text_input("Enter the name of the chemical product you're looking for:")
 
