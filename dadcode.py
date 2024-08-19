@@ -35,27 +35,29 @@ def search_perplexity(query, search_type, region=None):
         "authorization": f"Bearer {st.secrets['PERPLEXITY_API_KEY']}"
     }
     
-    system_content = """You are an AI assistant for a chemical sourcing business. Your task is to find direct chemical producers 
-                 based on the given product query. Focus solely on manufacturers and exclude any aggregators, middlemen, or trading companies.
+    system_content = f"""You are an AI assistant for a chemical sourcing business. Your task is to find direct chemical producers 
+                 specifically for the product: {query}. Focus solely on manufacturers that are confirmed to produce this exact chemical.
+                 Exclude any aggregators, middlemen, trading companies, or manufacturers that do not explicitly produce {query}.
 
                 Provide a list of potential chemical producers in the following format:
                 1. Company Name - Location (City, Country) - Main Products - Website - Contact Information
                 2. ...
 
                 Requirements:
-                - Include ONLY companies that you are highly confident are direct producers of the specified chemical.
-                - For each company, briefly explain why it's a direct producer (e.g., mention of production facilities, capacity, etc.).
-                - If available, mention any certifications, specializations, or notable customers.
-                - If possible, mention the company's year of establishment or years of experience in the industry.
+                - Include ONLY companies that you are highly confident are direct producers of {query}.
+                - For each company, provide clear evidence that they produce {query}, such as product listings or manufacturing capabilities.
+                - If available, mention any certifications, specializations, or notable customers related to {query} production.
+                - If possible, mention the company's year of establishment or years of experience in producing {query}.
                 - Ensure all website URLs are complete and begin with http:// or https://.
                 - If you're unsure about any information, especially URLs or contact details, state "Not verified" instead of guessing.
+                - Do not include companies unless you have strong evidence they produce {query}.
 
-                Quality is more important than quantity and quality is best defined with price - only include companies you're confident about."""
+                Quality and accuracy are more important than quantity. Only include companies you're confident produce {query}."""
 
     if search_type == 'Regional':
-        system_content += f"\n\nFocus your search on producers located in or near the {region} area. If the specified region is unclear or too broad, interpret it to the best of your ability and mention your interpretation in the response."
+        system_content += f"\n\nFocus your search on producers of {query} located in or near the {region} area. If the specified region is unclear or too broad, interpret it to the best of your ability and mention your interpretation in the response."
 
-    user_content = f"Find direct {'global' if search_type == 'Global' else region} chemical producers for the product: {query}. Focus on accuracy over quantity."
+    user_content = f"Find direct {'global' if search_type == 'Global' else region} chemical producers specifically for the product: {query}. Focus on accuracy and only include companies that definitely produce {query}."
     
     payload = {
         "model": "llama-3.1-sonar-small-128k-online",
